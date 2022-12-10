@@ -15,7 +15,7 @@ fn main() {
                 title: "sdvx-keyoverlay".to_string(),
                 width: WINDOW_WIDTH,
                 height: 400.0,
-                // transparent: true,
+                transparent: true,
                 ..default()
             },
             ..default()
