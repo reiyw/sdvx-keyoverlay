@@ -91,18 +91,33 @@ fn grow_input(mut query: Query<(&mut Transform, &mut Growing)>, timer: Res<Time>
 
 fn stop_growing_vol_beam(
     mut commands: Commands,
-    query: Query<(Entity, &SdvxInput, &Growing)>,
+    query: Query<(Entity, &VolKind, &Growing)>,
     mut vol_state: ResMut<VolState>,
 ) {
-    for (entity, input, beam) in query.iter() {
-        if let SdvxInputKind::Vol(ref vol) = input.kind {
-            if beam.time.elapsed_secs() > 0.05 {
-                commands.entity(entity).remove::<Growing>();
+    let left_overlapping = query.iter().any(|(_, kind, _)| match kind {
+        VolKind::Left(VolRotation::Left) => true,
+        _ => false,
+    }) && query.iter().any(|(_, kind, _)| match kind {
+        VolKind::Left(VolRotation::Right) => true,
+        _ => false,
+    });
+    let right_overlapping = query.iter().any(|(_, kind, _)| match kind {
+        VolKind::Right(VolRotation::Left) => true,
+        _ => false,
+    }) && query.iter().any(|(_, kind, _)| match kind {
+        VolKind::Right(VolRotation::Right) => true,
+        _ => false,
+    });
 
-                match vol {
-                    VolKind::Left(_) => vol_state.clear_left(),
-                    VolKind::Right(_) => vol_state.clear_right(),
-                }
+    for (entity, _, beam) in query.iter() {
+        if beam.time.elapsed_secs() > 0.05 {
+            commands.entity(entity).remove::<Growing>();
+
+            if !left_overlapping {
+                vol_state.clear_left();
+            }
+            if !right_overlapping {
+                vol_state.clear_right();
             }
         }
     }
@@ -178,7 +193,7 @@ fn gamepad_events(
 }
 
 fn spawn_beam(kind: SdvxInputKind, commands: &mut Commands, _beam_config: &Res<BeamConfig>) {
-    commands.spawn((
+    let mut cmd = commands.spawn((
         SpriteBundle {
             sprite: Sprite {
                 color: BeamConfig::color(&kind),
@@ -192,4 +207,7 @@ fn spawn_beam(kind: SdvxInputKind, commands: &mut Commands, _beam_config: &Res<B
         Growing::new(),
         SdvxInput::new(kind),
     ));
+    if let SdvxInputKind::Vol(kind) = kind {
+        cmd.insert(kind);
+    }
 }

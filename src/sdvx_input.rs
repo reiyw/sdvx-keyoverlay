@@ -15,13 +15,13 @@ impl SdvxInput {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 pub enum SdvxInputKind {
     Button(ButtonKind),
     Vol(VolKind),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 pub enum ButtonKind {
     BTA,
     BTB,
@@ -45,13 +45,13 @@ impl ButtonKind {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 pub enum VolKind {
     Left(VolRotation),
     Right(VolRotation),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 pub enum VolRotation {
     Left,
     Right,
@@ -103,7 +103,7 @@ pub struct VolState {
 
 impl VolState {
     // Must be even
-    const BUF_SIZE: usize = 4;
+    const BUF_SIZE: usize = 6;
 
     pub fn push_left(&mut self, value: f32) {
         self.left_values.push_back(value);
