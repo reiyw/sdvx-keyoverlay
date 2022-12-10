@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use bevy::input::gamepad::{GamepadEvent, GamepadEventType};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
