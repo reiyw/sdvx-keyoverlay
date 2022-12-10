@@ -43,7 +43,8 @@ pub const VOLRR_POS: Vec3 = Vec3::new(
     0.0,
 );
 
-pub const BUTTON_COLOR: Color = Color::WHITE;
-pub const FX_COLOR: Color = Color::rgb(0.96, 0.56, 0.0);
-pub const VOLL_COLOR: Color = Color::rgb(0.05, 0.71, 0.90);
-pub const VOLR_COLOR: Color = Color::rgb(0.75, 0.25, 0.56);
+pub const BEAM_ALPHA: f32 = 0.8;
+pub const BUTTON_COLOR: Color = Color::rgba(0.94, 0.95, 0.96, BEAM_ALPHA);
+pub const FX_COLOR: Color = Color::rgba(0.96, 0.56, 0.0, BEAM_ALPHA);
+pub const VOLL_COLOR: Color = Color::rgba(0.05, 0.71, 0.90, BEAM_ALPHA);
+pub const VOLR_COLOR: Color = Color::rgba(0.75, 0.25, 0.56, BEAM_ALPHA);
