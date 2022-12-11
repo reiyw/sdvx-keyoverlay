@@ -94,20 +94,18 @@ fn stop_growing_vol_beam(
     query: Query<(Entity, &VolKind, &Growing)>,
     mut vol_state: ResMut<VolState>,
 ) {
-    let left_overlapping = query.iter().any(|(_, kind, _)| match kind {
-        VolKind::Left(VolRotation::Left) => true,
-        _ => false,
-    }) && query.iter().any(|(_, kind, _)| match kind {
-        VolKind::Left(VolRotation::Right) => true,
-        _ => false,
-    });
-    let right_overlapping = query.iter().any(|(_, kind, _)| match kind {
-        VolKind::Right(VolRotation::Left) => true,
-        _ => false,
-    }) && query.iter().any(|(_, kind, _)| match kind {
-        VolKind::Right(VolRotation::Right) => true,
-        _ => false,
-    });
+    let left_overlapping = query
+        .iter()
+        .any(|(_, kind, _)| matches!(kind, VolKind::Left(VolRotation::Left)))
+        && query
+            .iter()
+            .any(|(_, kind, _)| matches!(kind, VolKind::Left(VolRotation::Right)));
+    let right_overlapping = query
+        .iter()
+        .any(|(_, kind, _)| matches!(kind, VolKind::Right(VolRotation::Left)))
+        && query
+            .iter()
+            .any(|(_, kind, _)| matches!(kind, VolKind::Right(VolRotation::Right)));
 
     for (entity, _, beam) in query.iter() {
         if beam.time.elapsed_secs() > 0.05 {

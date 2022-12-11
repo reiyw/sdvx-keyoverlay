@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::cmp::Ordering;
 
 use bevy::prelude::*;
 
@@ -10,7 +11,7 @@ pub struct SdvxInput {
 }
 
 impl SdvxInput {
-    pub fn new(kind: SdvxInputKind) -> Self {
+    pub const fn new(kind: SdvxInputKind) -> Self {
         Self { kind }
     }
 }
@@ -32,7 +33,7 @@ pub enum ButtonKind {
 }
 
 impl ButtonKind {
-    pub fn from_gamepad_button_type(button_type: &GamepadButtonType) -> Option<Self> {
+    pub const fn from_gamepad_button_type(button_type: &GamepadButtonType) -> Option<Self> {
         match button_type {
             GamepadButtonType::West => Some(Self::BTA),
             GamepadButtonType::South => Some(Self::BTB),
@@ -61,7 +62,7 @@ pub enum VolRotation {
 pub struct BeamConfig;
 
 impl BeamConfig {
-    pub fn color(kind: &SdvxInputKind) -> Color {
+    pub const fn color(kind: &SdvxInputKind) -> Color {
         match kind {
             SdvxInputKind::Button(ButtonKind::BTA | ButtonKind::BTB | ButtonKind::BTC | ButtonKind::BTD) => consts::BUTTON_COLOR,
             SdvxInputKind::Button(ButtonKind::FXL | ButtonKind::FXR) => consts::FX_COLOR,
@@ -70,7 +71,7 @@ impl BeamConfig {
         }
     }
 
-    pub fn pos(kind: &SdvxInputKind) -> Vec3 {
+    pub const fn pos(kind: &SdvxInputKind) -> Vec3 {
         match kind {
             SdvxInputKind::Button(ButtonKind::BTA) => consts::BTA_POS,
             SdvxInputKind::Button(ButtonKind::BTB) => consts::BTB_POS,
@@ -85,7 +86,7 @@ impl BeamConfig {
         }
     }
 
-    pub fn size(kind: &SdvxInputKind) -> Vec2 {
+    pub const fn size(kind: &SdvxInputKind) -> Vec2 {
         match kind {
             SdvxInputKind::Button(ButtonKind::BTA | ButtonKind::BTB | ButtonKind::BTC | ButtonKind::BTD) => consts::BUTTON_SIZE,
             SdvxInputKind::Button(ButtonKind::FXL | ButtonKind::FXR) => consts::FX_SIZE,
@@ -134,12 +135,10 @@ impl VolState {
                 diffs.push(-1);
             }
         }
-        if diffs.iter().sum::<i32>() > 0 {
-            Some(VolRotation::Right)
-        } else if diffs.iter().sum::<i32>() < 0 {
-            Some(VolRotation::Left)
-        } else {
-            panic!();
+        match diffs.iter().sum::<i32>().cmp(&0) {
+            Ordering::Greater => Some(VolRotation::Right),
+            Ordering::Less => Some(VolRotation::Left),
+            Ordering::Equal => panic!(),
         }
     }
 
@@ -158,12 +157,10 @@ impl VolState {
                 diffs.push(-1);
             }
         }
-        if diffs.iter().sum::<i32>() > 0 {
-            Some(VolRotation::Left)
-        } else if diffs.iter().sum::<i32>() < 0 {
-            Some(VolRotation::Right)
-        } else {
-            panic!();
+        match diffs.iter().sum::<i32>().cmp(&0) {
+            Ordering::Greater => Some(VolRotation::Left),
+            Ordering::Less => Some(VolRotation::Right),
+            Ordering::Equal => panic!(),
         }
     }
 
