@@ -15,7 +15,7 @@ fn main() {
                 title: "sdvx-keyoverlay".to_string(),
                 width: WINDOW_WIDTH,
                 height: 400.0,
-                transparent: true,
+                transparent: false,
                 ..default()
             },
             ..default()
@@ -24,13 +24,27 @@ fn main() {
         .add_system(move_input)
         .add_system(despawn_beam)
         .add_system(grow_input)
+        .add_system(track_kps)
         .add_system(stop_growing_vol_beam)
         .add_system(gamepad_events)
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
+
+    let text_style = TextStyle {
+        font: asset_server.load("C:/Windows/Fonts/arial.ttf"),
+        font_size: 20.0,
+        color: Color::WHITE,
+    };
+    commands.spawn((
+        TextBundle::from_sections([
+            TextSection::new("KPS: ", text_style.clone()),
+            TextSection::from_style(text_style),
+        ]),
+        KpsText,
+    ));
 }
 
 #[derive(Component)]
@@ -57,6 +71,14 @@ impl Growing {
             time: Stopwatch::new(),
         }
     }
+}
+
+#[derive(Component)]
+struct KpsText;
+
+#[derive(Component, Default)]
+struct MetricsTrackingTarget {
+    time: Stopwatch,
 }
 
 fn move_input(mut query: Query<&mut Transform, With<Moving>>, timer: Res<Time>) {
@@ -86,6 +108,26 @@ fn grow_input(mut query: Query<(&mut Transform, &mut Growing)>, timer: Res<Time>
         let delta = SCROLL_SPEED * timer.delta_seconds();
         transform.scale += Vec3::new(0.0, delta, 0.0);
         transform.translation += Vec3::new(0.0, -delta / 2.0, 0.0);
+    }
+}
+
+fn track_kps(
+    mut commands: Commands,
+    mut target_query: Query<(Entity, &mut MetricsTrackingTarget)>,
+    mut text_query: Query<&mut Text, With<KpsText>>,
+    timer: Res<Time>,
+) {
+    let mut count = 0;
+    for (entity, mut target) in &mut target_query {
+        target.time.tick(timer.delta());
+        if target.time.elapsed_secs() <= 1.0 {
+            count += 1;
+        } else {
+            commands.entity(entity).remove::<MetricsTrackingTarget>();
+        }
+    }
+    for mut text in &mut text_query {
+        text.sections[1].value = count.to_string();
     }
 }
 
@@ -205,6 +247,9 @@ fn spawn_beam(kind: SdvxInputKind, commands: &mut Commands, _beam_config: &Res<B
         Growing::new(),
         SdvxInput::new(kind),
     ));
+    if let SdvxInputKind::Button(_) = kind {
+        cmd.insert(MetricsTrackingTarget::default());
+    }
     if let SdvxInputKind::Vol(kind) = kind {
         cmd.insert(kind);
     }
